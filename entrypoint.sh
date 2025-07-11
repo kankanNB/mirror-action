@@ -66,7 +66,12 @@ fi
 
 git remote add ${REMOTE_NAME} "${REMOTE}"
 if [[ "${INPUT_PUSH_ALL_REFS}" != "false" ]]; then
-    eval git push ${GIT_PUSH_ARGS} ${REMOTE_NAME} "\"refs/remotes/origin/*:refs/heads/*\""
+    for branch in $(git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin/ | grep -v '^HEAD$'); do
+        echo "推送分支: $branch"
+        git push ${GIT_PUSH_ARGS} ${REMOTE_NAME} "refs/remotes/origin/${branch}:refs/heads/${branch}"
+    done
+    echo "推送 tags"
+    git push ${GIT_PUSH_ARGS} ${REMOTE_NAME} --tags
 else
     if [[ "${HAS_CHECKED_OUT}" != "true" ]]; then
         echo "FATAL: You must upgrade to using actions inputs instead of args: to push a single branch" > /dev/stderr
